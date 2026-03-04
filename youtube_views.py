@@ -123,8 +123,9 @@ def save_csv(filepath: str, headers: list[str], rows_by_id: dict[str, dict]) -> 
 
 def main():
     url_file = sys.argv[1] if len(sys.argv) > 1 else "urls.txt"
-    csv_file = sys.argv[2] if len(sys.argv) > 2 else "views_log.csv"
     today = datetime.now().strftime("%Y-%m-%d")
+    year = today[:4]
+    csv_file = sys.argv[2] if len(sys.argv) > 2 else f"{year}_views_log.csv"
 
     urls = read_urls(url_file)
 
