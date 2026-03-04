@@ -1,0 +1,16 @@
+# YouTube URLs to track — one per line
+# Lines starting with # are ignored
+# Ночная тьма
+https://www.youtube.com/watch?v=RFjUGaRPHBw
+# Я не скажу много слов...
+https://www.youtube.com/watch?v=vLulRBU5Ysc
+# Я не понял тебя...
+https://www.youtube.com/watch?v=pdnlFh683xk
+# Горе не беда
+https://www.youtube.com/watch?v=RoqoIhL5plI
+# Девчонка моя
+https://www.youtube.com/watch?v=X-Byy3BDda8
+# Синица
+https://www.youtube.com/watch?v=E5DzKXhHpu0
+# Белый самолёт
+https://www.youtube.com/watch?v=VxdC4j2pyGI
