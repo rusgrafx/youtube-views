@@ -17,6 +17,7 @@ a CSV where each video is a unique row and each run date adds a new column.
 
 ## AWS Lambda usage
 Deploy this file as a Lambda function (Python 3.12, handler: youtube_views.lambda_handler).
+
 Set these environment variables in the Lambda configuration:
 
 ```
@@ -31,9 +32,7 @@ The CSV is read from and written back to:
 
 IAM permissions required for the Lambda execution role:
 
-```
-s3:GetObject, s3:PutObject  on  arn:aws:s3:::my-youtube-views/*
-s3:ListBucket  on  arn:aws:s3:::my-youtube-views
-```
+- `s3:GetObject, s3:PutObject`  on  `arn:aws:s3:::my-youtube-views/*`
+- `s3:ListBucket`  on  `arn:aws:s3:::my-youtube-views`
 
 Schedule with EventBridge: `cron(0 9 * * ? *)` runs every day at 09:00 UTC.

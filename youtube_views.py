@@ -15,15 +15,16 @@ CSV layout:
 Deploy this file as a Lambda function (Python 3.12, handler: youtube_views.lambda_handler).
 Set these environment variables in the Lambda configuration:
 
-    S3_BUCKET      ru-youtube-views        (default)
+    S3_BUCKET      my-youtube-views        (default)
     S3_URLS_KEY    youtube/urls.txt        (default: urls.txt)
-    S3_CSV_PREFIX  youtube/               (default: "" - root of bucket)
+    S3_CSV_PREFIX  youtube/                (default: "" - root of bucket)
 
 The CSV is read from and written back to:
     s3://<S3_BUCKET>/<S3_CSV_PREFIX><YYYY>_views_log.csv
 
 IAM permissions required for the Lambda execution role:
-    s3:GetObject, s3:PutObject  on  arn:aws:s3:::ru-youtube-views/*
+    s3:GetObject, s3:PutObject  on  arn:aws:s3:::my-youtube-views/*
+    s3:ListBucket               on  arn:aws:s3:::my-youtube-views
 
 Schedule with EventBridge: cron(0 9 * * ? *) runs every day at 09:00 UTC.
 """
@@ -238,7 +239,7 @@ def run(urls, headers, rows_by_id, today, log):
 # -- Lambda entry point --------------------------------------------------------
 
 def lambda_handler(event, context):
-    bucket     = os.environ.get("S3_BUCKET", "ru-youtube-views")
+    bucket     = os.environ.get("S3_BUCKET", "my-youtube-views")
     urls_key   = os.environ.get("S3_URLS_KEY", "urls.txt")
     csv_prefix = os.environ.get("S3_CSV_PREFIX", "")
 
