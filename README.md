@@ -20,9 +20,9 @@ Deploy this file as a Lambda function (Python 3.12, handler: youtube_views.lambd
 Set these environment variables in the Lambda configuration:
 
 ```
-    S3_BUCKET      ru-youtube-views        (default)
+    S3_BUCKET      my-youtube-views        (default)
     S3_URLS_KEY    youtube/urls.txt        (default: urls.txt)
-    S3_CSV_PREFIX  youtube/               (default: "" - root of bucket)
+    S3_CSV_PREFIX  youtube/                (default: "" - root of bucket)
 ```
 
 The CSV is read from and written back to:
