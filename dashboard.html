@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Song Views Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #141414;
+    --surface2: #1a1a1a;
+    --border: #252525;
+    --accent: #e8ff47;
+    --accent2: #ff6b35;
+    --text: #f0f0f0;
+    --muted: #4a4a4a;
+    --muted2: #777;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── UPLOAD SCREEN ── */
+  #upload-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    position: relative;
+  }
+
+  #upload-screen::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 55% 45% at 15% 25%, rgba(232,255,71,0.05) 0%, transparent 55%),
+      radial-gradient(ellipse 45% 55% at 85% 75%, rgba(255,107,53,0.04) 0%, transparent 55%);
+    pointer-events: none;
+  }
+
+  .upload-inner {
+    max-width: 520px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 18px;
+    display: block;
+  }
+
+  .upload-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(32px, 7vw, 56px);
+    font-weight: 800;
+    line-height: 1.0;
+    color: #fff;
+    margin-bottom: 16px;
+  }
+
+  .upload-title em {
+    color: var(--accent);
+    font-style: normal;
+  }
+
+  .upload-sub {
+    font-size: 12px;
+    color: var(--muted2);
+    line-height: 1.8;
+    margin-bottom: 44px;
+  }
+
+  .drop-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: 12px;
+    padding: 52px 32px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: var(--surface);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .drop-zone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(232,255,71,0.04) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .drop-zone:hover::before,
+  .drop-zone.drag-over::before {
+    opacity: 1;
+  }
+
+  .drop-zone:hover,
+  .drop-zone.drag-over {
+    border-color: var(--accent);
+    background: #161616;
+  }
+
+  .drop-icon {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    font-size: 22px;
+    transition: all 0.25s;
+    background: var(--surface2);
+  }
+
+  .drop-zone:hover .drop-icon,
+  .drop-zone.drag-over .drop-icon {
+    border-color: var(--accent);
+    background: rgba(232,255,71,0.08);
+  }
+
+  .drop-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .drop-hint {
+    font-size: 11px;
+    color: var(--muted2);
+    letter-spacing: 0.05em;
+  }
+
+  .drop-hint span {
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: rgba(232,255,71,0.4);
+  }
+
+  #file-input { display: none; }
+
+  .format-note {
+    margin-top: 24px;
+    padding: 14px 20px;
+    background: var(--surface2);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted2);
+    text-align: left;
+    line-height: 1.9;
+  }
+
+  .format-note strong { color: var(--accent); font-weight: 500; }
+
+  .error-msg {
+    margin-top: 16px;
+    padding: 12px 18px;
+    background: rgba(255,107,53,0.08);
+    border: 1px solid rgba(255,107,53,0.3);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--accent2);
+    display: none;
+  }
+
+  /* ── DASHBOARD ── */
+  #dashboard {
+    display: none;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .dash-header {
+    padding: 24px 32px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    background: rgba(13,13,13,0.95);
+    backdrop-filter: blur(12px);
+    z-index: 10;
+  }
+
+  .dash-brand {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .dash-brand .dot {
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s ease infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.7); }
+  }
+
+  .dash-file-info {
+    font-size: 11px;
+    color: var(--muted2);
+  }
+
+  .dash-file-info strong { color: var(--text); }
+
+  .btn-reset {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted2);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 7px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+  }
+
+  .btn-reset:hover {
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  .dash-body {
+    padding: 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin-bottom: 36px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    transition: border-color 0.2s;
+  }
+
+  .stat-card:hover { border-color: var(--accent); }
+
+  .stat-card .sc-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted2);
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .stat-card .sc-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+    word-break: break-word;
+  }
+
+  .stat-card .sc-sub {
+    font-size: 10px;
+    color: var(--muted2);
+    margin-top: 5px;
+  }
+
+  /* Date tabs */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted2);
+  }
+
+  .date-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .date-tab {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--muted2);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .date-tab:hover { border-color: var(--muted2); color: var(--text); }
+
+  .date-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+    font-weight: 500;
+  }
+
+  /* Chart */
+  .chart-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    animation: fadeUp 0.5s 0.1s ease both;
+  }
+
+  .song-row {
+    display: grid;
+    grid-template-columns: 200px 1fr 90px;
+    align-items: center;
+    gap: 16px;
+    padding: 11px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .song-row:last-child { border-bottom: none; }
+
+  .song-name {
+    font-size: 12px;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0.85;
+  }
+
+  .bar-track {
+    background: var(--surface2);
+    border-radius: 3px;
+    height: 24px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    width: 0;
+    transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .bar-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0;
+    width: 3px; height: 100%;
+    background: rgba(255,255,255,0.4);
+    border-radius: 0 3px 3px 0;
+  }
+
+  .bar-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .bar-views {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .bar-delta {
+    font-size: 10px;
+    color: #5cff8a;
+  }
+
+  .bar-delta.neg { color: var(--accent2); }
+  .bar-delta.zero { color: var(--muted2); }
+
+  /* Multi-date sparkline view */
+  .timeline-section {
+    margin-top: 32px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    animation: fadeUp 0.5s 0.2s ease both;
+  }
+
+  .spark-row {
+    display: grid;
+    grid-template-columns: 200px 1fr 80px;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .spark-row:last-child { border-bottom: none; }
+
+  canvas.spark {
+    width: 100%;
+    height: 36px;
+    display: block;
+  }
+
+  .spark-growth {
+    font-size: 11px;
+    text-align: right;
+  }
+
+  .spark-growth .pct {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    display: block;
+    color: #5cff8a;
+  }
+
+  .spark-growth .pct.neg { color: var(--accent2); }
+
+  .spark-growth small {
+    font-size: 10px;
+    color: var(--muted2);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Tooltip */
+  .tip {
+    position: fixed;
+    background: #1c1c1c;
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 11px;
+    color: var(--text);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  .tip.show { opacity: 1; }
+
+  @media (max-width: 600px) {
+    .song-row, .spark-row {
+      grid-template-columns: 120px 1fr 60px;
+    }
+    .song-name { font-size: 10px; }
+    .dash-body { padding: 20px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- UPLOAD SCREEN -->
+<div id="upload-screen">
+  <div class="upload-inner">
+    <span class="eyebrow">YouTube Analytics</span>
+    <h1 class="upload-title">Song Views<br><em>Dashboard</em></h1>
+    <p class="upload-sub">Load your CSV export to visualize<br>view counts and track song progress over time.</p>
+
+    <div class="drop-zone" id="drop-zone">
+      <div class="drop-icon">📊</div>
+      <div class="drop-label">Drop your CSV here</div>
+      <div class="drop-hint">or <span id="browse-link">browse files</span></div>
+      <input type="file" id="file-input" accept=".csv">
+    </div>
+
+    <div class="format-note">
+      <strong>Expected format:</strong> Video ID, Title, URL, then date columns (e.g. <strong>2026-03-05</strong>, <strong>2026-03-06</strong>…)<br>
+      Each row = one song. Each date column = view count for that date.
+    </div>
+
+    <div class="error-msg" id="error-msg"></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="dash-header">
+    <div class="dash-brand">
+      <div class="dot"></div>
+      ViewTrack
+    </div>
+    <div class="dash-file-info" id="file-info"></div>
+    <button class="btn-reset" id="btn-reset">↩ Load new file</button>
+  </div>
+
+  <div class="dash-body">
+    <div class="stats-row" id="stats-row"></div>
+
+    <div class="section-header">
+      <span class="section-title">Views by date</span>
+      <div class="date-tabs" id="date-tabs"></div>
+    </div>
+
+    <div class="chart-container" id="chart-container"></div>
+
+    <div class="timeline-section" id="timeline-section">
+      <div class="section-header" style="margin-bottom:16px">
+        <span class="section-title">Growth sparklines</span>
+      </div>
+      <div id="sparklines"></div>
+    </div>
+  </div>
+</div>
+
+<div class="tip" id="tip"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────
+let csvData = null;   // { songs: [{title, views:{date:n}}], dates: [] }
+let activeDate = null;
+
+const COLORS = [
+  "#e8ff47","#ff6b35","#00d4ff","#ff4d9e","#7fff6e","#ffaa00","#a78bfa",
+  "#34d399","#fb7185","#38bdf8","#fbbf24","#c084fc"
+];
+
+// ── UPLOAD LOGIC ───────────────────────────────────────────────
+const dropZone   = document.getElementById("drop-zone");
+const fileInput  = document.getElementById("file-input");
+const browseLink = document.getElementById("browse-link");
+const errorMsg   = document.getElementById("error-msg");
+
+browseLink.addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", e => {
+  if (e.target.files[0]) handleFile(e.target.files[0]);
+});
+
+dropZone.addEventListener("dragover", e => {
+  e.preventDefault();
+  dropZone.classList.add("drag-over");
+});
+dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag-over"));
+dropZone.addEventListener("drop", e => {
+  e.preventDefault();
+  dropZone.classList.remove("drag-over");
+  const f = e.dataTransfer.files[0];
+  if (f) handleFile(f);
+});
+
+document.getElementById("btn-reset").addEventListener("click", () => {
+  csvData = null;
+  activeDate = null;
+  fileInput.value = "";
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("upload-screen").style.display = "flex";
+  errorMsg.style.display = "none";
+});
+
+function showError(msg) {
+  errorMsg.textContent = "⚠ " + msg;
+  errorMsg.style.display = "block";
+}
+
+function handleFile(file) {
+  if (!file.name.toLowerCase().endsWith(".csv")) {
+    showError("Please upload a .csv file.");
+    return;
+  }
+  errorMsg.style.display = "none";
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      csvData = parseCSV(e.target.result);
+      if (!csvData.songs.length) throw new Error("No song rows found.");
+      if (!csvData.dates.length) throw new Error("No date columns found.");
+      document.getElementById("file-info").innerHTML =
+        `<strong>${file.name}</strong> &nbsp;·&nbsp; ${csvData.songs.length} songs &nbsp;·&nbsp; ${csvData.dates.length} date${csvData.dates.length > 1 ? 's' : ''}`;
+      activeDate = csvData.dates[csvData.dates.length - 1];
+      document.getElementById("upload-screen").style.display = "none";
+      document.getElementById("dashboard").style.display = "block";
+      renderDashboard();
+    } catch (err) {
+      showError(err.message || "Could not parse CSV.");
+    }
+  };
+  reader.readAsText(file, "UTF-8");
+}
+
+// ── CSV PARSER ─────────────────────────────────────────────────
+function parseCSV(text) {
+  // Remove BOM
+  text = text.replace(/^\uFEFF/, "");
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if (!lines.length) throw new Error("Empty file.");
+
+  const headers = splitCSVLine(lines[0]);
+  // Detect date columns: YYYY-MM-DD pattern or any col after col 2
+  const dateCols = [];
+  headers.forEach((h, i) => {
+    if (i >= 2 && /\d{4}-\d{2}-\d{2}/.test(h.trim())) dateCols.push({ index: i, date: h.trim() });
+    // fallback: treat columns after index 2 as dates if header looks numeric/date-like
+    else if (i >= 3 && !["url","link","id","title","name"].includes(h.trim().toLowerCase())) {
+      dateCols.push({ index: i, date: h.trim() });
+    }
+  });
+
+  // Find title column (index 1 preferred)
+  const titleIdx = 1;
+
+  const songs = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = splitCSVLine(lines[i]);
+    if (!cols[titleIdx]) continue;
+    const views = {};
+    dateCols.forEach(dc => {
+      const v = parseInt(cols[dc.index]);
+      if (!isNaN(v)) views[dc.date] = v;
+    });
+    if (Object.keys(views).length === 0) continue;
+    songs.push({ title: cols[titleIdx].trim(), views });
+  }
+
+  return { songs, dates: dateCols.map(d => d.date) };
+}
+
+function splitCSVLine(line) {
+  const result = [];
+  let cur = "", inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQ = !inQ; continue; }
+    if (c === ',' && !inQ) { result.push(cur); cur = ""; continue; }
+    cur += c;
+  }
+  result.push(cur);
+  return result;
+}
+
+// ── DASHBOARD RENDER ───────────────────────────────────────────
+function renderDashboard() {
+  renderStats();
+  renderDateTabs();
+  renderChart();
+  renderSparklines();
+}
+
+function renderStats() {
+  const total = csvData.songs.reduce((s, x) => s + (x.views[activeDate] || 0), 0);
+  const allVals = csvData.songs.map(s => s.views[activeDate] || 0);
+  const top = csvData.songs.reduce((a, b) =>
+    (b.views[activeDate] || 0) > (a.views[activeDate] || 0) ? b : a);
+  const prevDate = csvData.dates[csvData.dates.indexOf(activeDate) - 1];
+  const totalPrev = prevDate
+    ? csvData.songs.reduce((s, x) => s + (x.views[prevDate] || 0), 0)
+    : null;
+
+  let growthHtml = "";
+  if (totalPrev !== null) {
+    const delta = total - totalPrev;
+    growthHtml = `<div class="sc-sub">${delta >= 0 ? "+" : ""}${delta.toLocaleString()} vs prev</div>`;
+  }
+
+  document.getElementById("stats-row").innerHTML = `
+    <div class="stat-card">
+      <span class="sc-label">Total Views</span>
+      <div class="sc-val">${total.toLocaleString()}</div>
+      ${growthHtml}
+    </div>
+    <div class="stat-card">
+      <span class="sc-label">Top Song</span>
+      <div class="sc-val" style="font-size:15px;line-height:1.2">${top.title}</div>
+      <div class="sc-sub">${(top.views[activeDate]||0).toLocaleString()} views</div>
+    </div>
+    <div class="stat-card">
+      <span class="sc-label">Songs</span>
+      <div class="sc-val">${csvData.songs.length}</div>
+      <div class="sc-sub">tracked</div>
+    </div>
+    <div class="stat-card">
+      <span class="sc-label">Dates</span>
+      <div class="sc-val">${csvData.dates.length}</div>
+      <div class="sc-sub">data points</div>
+    </div>
+  `;
+}
+
+function renderDateTabs() {
+  document.getElementById("date-tabs").innerHTML = csvData.dates.map(d => `
+    <button class="date-tab ${d === activeDate ? 'active' : ''}" data-date="${d}">${formatDate(d)}</button>
+  `).join('');
+
+  document.querySelectorAll('.date-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeDate = btn.dataset.date;
+      document.querySelectorAll('.date-tab').forEach(b => b.classList.toggle('active', b.dataset.date === activeDate));
+      renderStats();
+      renderChart();
+    });
+  });
+}
+
+function renderChart() {
+  const prevDate = csvData.dates[csvData.dates.indexOf(activeDate) - 1];
+  const sorted = [...csvData.songs].sort((a, b) =>
+    (b.views[activeDate] || 0) - (a.views[activeDate] || 0));
+  const max = Math.max(...sorted.map(s => s.views[activeDate] || 0));
+  const tip = document.getElementById("tip");
+
+  const container = document.getElementById("chart-container");
+  container.innerHTML = sorted.map((song, i) => {
+    const v = song.views[activeDate] || 0;
+    const pv = prevDate ? (song.views[prevDate] || 0) : null;
+    const delta = pv !== null ? v - pv : null;
+    const pct = max > 0 ? (v / max * 100).toFixed(1) : 0;
+    const color = COLORS[csvData.songs.indexOf(song) % COLORS.length];
+
+    const deltaHtml = delta !== null
+      ? `<span class="bar-delta ${delta < 0 ? 'neg' : delta === 0 ? 'zero' : ''}">${delta >= 0 ? '+' : ''}${delta}</span>`
+      : '';
+
+    return `
+      <div class="song-row" style="animation-delay:${i * 0.04}s">
+        <div class="song-name" title="${song.title}">${song.title}</div>
+        <div class="bar-track">
+          <div class="bar-fill" data-target="${pct}"
+            style="background: linear-gradient(90deg, ${color}99, ${color});">
+          </div>
+        </div>
+        <div class="bar-meta">
+          <span class="bar-views">${v.toLocaleString()}</span>
+          ${deltaHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Animate bars
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    container.querySelectorAll('.bar-fill').forEach(bar => {
+      bar.style.width = bar.dataset.target + '%';
+    });
+  }));
+
+  // Tooltips
+  container.querySelectorAll('.song-row').forEach((row, i) => {
+    const song = sorted[i];
+    row.addEventListener('mousemove', e => {
+      const v = song.views[activeDate] || 0;
+      tip.textContent = `${song.title}  ·  ${v.toLocaleString()} views`;
+      tip.style.left = (e.clientX + 14) + 'px';
+      tip.style.top  = (e.clientY - 32) + 'px';
+      tip.classList.add('show');
+    });
+    row.addEventListener('mouseleave', () => tip.classList.remove('show'));
+  });
+}
+
+function renderSparklines() {
+  if (csvData.dates.length < 2) {
+    document.getElementById("timeline-section").style.display = "none";
+    return;
+  }
+  document.getElementById("timeline-section").style.display = "";
+
+  const sorted = [...csvData.songs].sort((a, b) => {
+    const aLast = a.views[csvData.dates[csvData.dates.length-1]] || 0;
+    const bLast = b.views[csvData.dates[csvData.dates.length-1]] || 0;
+    return bLast - aLast;
+  });
+
+  const firstDate = csvData.dates[0];
+  const lastDate  = csvData.dates[csvData.dates.length - 1];
+
+  document.getElementById("sparklines").innerHTML = sorted.map((song, i) => {
+    const first = song.views[firstDate] || 0;
+    const last  = song.views[lastDate] || 0;
+    const pctChange = first > 0 ? ((last - first) / first * 100).toFixed(1) : null;
+    const color = COLORS[csvData.songs.indexOf(song) % COLORS.length];
+    const canvasId = `spark-${i}`;
+
+    const pctHtml = pctChange !== null
+      ? `<span class="pct ${parseFloat(pctChange) < 0 ? 'neg' : ''}">${parseFloat(pctChange) >= 0 ? '+' : ''}${pctChange}%</span>`
+      : `<span class="pct">—</span>`;
+
+    return `
+      <div class="spark-row">
+        <div class="song-name" title="${song.title}">${song.title}</div>
+        <canvas class="spark" id="${canvasId}" height="36"></canvas>
+        <div class="spark-growth">
+          ${pctHtml}
+          <small>total growth</small>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Draw sparklines after DOM update
+  requestAnimationFrame(() => {
+    sorted.forEach((song, i) => {
+      const canvas = document.getElementById(`spark-${i}`);
+      if (!canvas) return;
+      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+      canvas.height = 36 * window.devicePixelRatio;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+      const vals = csvData.dates.map(d => song.views[d] ?? null).filter(v => v !== null);
+      if (vals.length < 2) return;
+
+      const w = canvas.offsetWidth;
+      const h = 36;
+      const pad = 4;
+      const minV = Math.min(...vals);
+      const maxV = Math.max(...vals);
+      const range = maxV - minV || 1;
+
+      const color = COLORS[csvData.songs.indexOf(song) % COLORS.length];
+
+      // Gradient fill
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, color + "44");
+      grad.addColorStop(1, color + "00");
+
+      ctx.beginPath();
+      vals.forEach((v, j) => {
+        const x = (j / (vals.length - 1)) * (w - pad*2) + pad;
+        const y = h - pad - ((v - minV) / range) * (h - pad*2);
+        j === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      });
+      // Fill area
+      const lastX = ((vals.length-1) / (vals.length-1)) * (w - pad*2) + pad;
+      ctx.lineTo(lastX, h);
+      ctx.lineTo(pad, h);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Line
+      ctx.beginPath();
+      vals.forEach((v, j) => {
+        const x = (j / (vals.length - 1)) * (w - pad*2) + pad;
+        const y = h - pad - ((v - minV) / range) * (h - pad*2);
+        j === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      });
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      ctx.lineJoin = "round";
+      ctx.stroke();
+
+      // Endpoint dot
+      const lastVal = vals[vals.length - 1];
+      const ex = (w - pad);
+      const ey = h - pad - ((lastVal - minV) / range) * (h - pad*2);
+      ctx.beginPath();
+      ctx.arc(ex, ey, 3, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+    });
+  });
+}
+
+function formatDate(d) {
+  try {
+    const [y, m, day] = d.split("-");
+    if (y && m && day) return `${day}.${m}.${y.slice(2)}`;
+  } catch(e) {}
+  return d;
+}
+</script>
+</body>
+</html>
