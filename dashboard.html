@@ -28,69 +28,73 @@
     overflow-x: hidden;
   }
 
-  /* ── LOADING SCREEN ── */
+  /* ── STARTUP SCREEN ── */
   #loading-screen {
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-direction: column;
-    gap: 18px;
+    padding: 40px 24px;
+    position: relative;
   }
 
-  .spinner {
-    width: 32px; height: 32px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
+  #loading-screen::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 55% 45% at 15% 25%, rgba(232,255,71,0.05) 0%, transparent 55%),
+      radial-gradient(ellipse 45% 55% at 85% 75%, rgba(255,107,53,0.04) 0%, transparent 55%);
+    pointer-events: none;
   }
 
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .loading-label {
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    color: var(--muted2);
-    text-transform: uppercase;
-  }
-
-  /* ── ERROR SCREEN ── */
-  #error-screen {
-    display: none;
-    min-height: 100vh;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 16px;
-    padding: 40px;
+  .upload-inner {
+    max-width: 420px;
+    width: 100%;
     text-align: center;
+    position: relative;
+    z-index: 1;
   }
 
-  .error-icon { font-size: 36px; }
+  .eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: block;
+  }
 
-  .error-title {
+  .upload-title {
     font-family: 'Syne', sans-serif;
-    font-size: 20px;
+    font-size: clamp(28px, 6vw, 44px);
     font-weight: 800;
-    color: var(--accent2);
+    line-height: 1.05;
+    color: #fff;
+    margin-bottom: 14px;
   }
 
-  .error-detail {
+  .upload-title em {
+    color: var(--accent);
+    font-style: normal;
+  }
+
+  .upload-sub {
     font-size: 12px;
     color: var(--muted2);
-    max-width: 420px;
     line-height: 1.8;
+    margin-bottom: 32px;
   }
 
+  .upload-sub strong { color: var(--text); }
+
   .btn-upload-alt {
-    margin-top: 8px;
     background: var(--surface);
     border: 1px solid var(--border);
     color: var(--text);
     font-family: 'DM Mono', monospace;
     font-size: 11px;
-    padding: 10px 22px;
+    padding: 12px 28px;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s;
@@ -438,18 +442,12 @@
 <body>
 
 <div id="loading-screen">
-  <div class="spinner"></div>
-  <div class="loading-label">Loading data…</div>
-</div>
-
-<div id="error-screen">
-  <div class="error-icon">⚠️</div>
-  <div class="error-title">Could not load data</div>
-  <div class="error-detail" id="error-detail">
-    Make sure <strong>views_data.json</strong> is in the same folder as this HTML file,
-    or load a file manually below.
+  <div class="upload-inner">
+    <span class="eyebrow">ViewTrack</span>
+    <h1 class="upload-title">Load <em>data file</em></h1>
+    <p class="upload-sub">Select <strong id="json-filename-hint"></strong> to get started.<br>You can also drag and drop the file anywhere on this page.</p>
+    <button class="btn-upload-alt" id="btn-startup-upload">📂 Select JSON file</button>
   </div>
-  <button class="btn-upload-alt" id="btn-error-upload">📂 Load file manually</button>
 </div>
 
 <div id="dashboard">
@@ -503,23 +501,24 @@ let activeDate = null;
 
 // ── SCREENS ───────────────────────────────────────────────────
 function show(name) {
-  document.getElementById("loading-screen").style.display = name === "loading" ? "flex" : "none";
-  document.getElementById("error-screen").style.display   = name === "error"   ? "flex" : "none";
-  document.getElementById("dashboard").style.display      = name === "dash"    ? "block": "none";
+  document.getElementById("loading-screen").style.display = name === "startup" ? "flex" : "none";
+  document.getElementById("dashboard").style.display      = name === "dash"    ? "block" : "none";
 }
 
 // ── BOOT ──────────────────────────────────────────────────────
 async function boot() {
-  show("loading");
-  try {
-    const res = await fetch(JSON_FILE);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    loadData(await res.json(), JSON_FILE);
-  } catch (e) {
-    document.getElementById("error-detail").innerHTML =
-      `Make sure <strong>${JSON_FILE}</strong> is in the same folder as this HTML file, or load a file manually.`;
-    show("error");
+  // Try auto-fetch first (works when served over HTTP)
+  if (window.location.protocol !== "file:") {
+    try {
+      const res = await fetch(JSON_FILE);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      loadData(await res.json(), JSON_FILE);
+      return;
+    } catch (e) { /* fall through to file picker */ }
   }
+  // file:// or fetch failed — show startup screen
+  document.getElementById("json-filename-hint").textContent = JSON_FILE;
+  show("startup");
 }
 
 // ── DATA ──────────────────────────────────────────────────────
@@ -566,9 +565,19 @@ document.addEventListener("drop", e => {
 });
 
 // ── BUTTON WIRING ─────────────────────────────────────────────
+document.getElementById("btn-startup-upload").addEventListener("click", () => fileInput.click());
 document.getElementById("btn-load-file").addEventListener("click", () => fileInput.click());
-document.getElementById("btn-error-upload").addEventListener("click", () => fileInput.click());
-document.getElementById("btn-reload").addEventListener("click", () => { show("loading"); setTimeout(boot, 200); });
+document.getElementById("btn-reload").addEventListener("click", async () => {
+  if (window.location.protocol !== "file:") {
+    try {
+      const res = await fetch(JSON_FILE + "?t=" + Date.now()); // cache-bust
+      if (!res.ok) throw new Error();
+      loadData(await res.json(), JSON_FILE);
+      return;
+    } catch (e) { /* fall through */ }
+  }
+  fileInput.click();
+});
 
 // ── RENDER ────────────────────────────────────────────────────
 function renderDashboard() {

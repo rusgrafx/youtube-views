@@ -98,13 +98,27 @@ Schedule with EventBridge: `cron(0 9 * * ? *)` runs every day at 09:00 UTC.
 
 ---
 
-## Loading Data in the Dashboard
+## Running the Dashboard
 
-The dashboard auto-fetches the JSON on startup. If it isn't found (e.g. when opening the HTML directly from the filesystem without a local server), an error screen appears with a **Load file manually** button. You can also:
+### Served over HTTP (recommended)
 
-- Click **📂 Load file** in the header at any time to swap in a different `.json` file
+Place `dashboard.html` and `YYYY_views_data.json` in the same folder and serve it with any local HTTP server. The JSON will load automatically on startup and **↺ Reload JSON** will re-fetch it without any user interaction.
+
+```bash
+# Python (no install required)
+python -m http.server 8000
+```
+
+Then open `http://localhost:8000/dashboard.html` in your browser.
+
+### Opened directly from the filesystem (`file://`)
+
+Browsers block network requests from `file://` URLs due to CORS restrictions. In this case the dashboard shows a startup screen prompting you to select the JSON file manually. Drag and drop also works. Once loaded, **↺ Reload JSON** will re-open the file picker.
+
+In both cases you can also:
+
+- Click **📂 Load file** in the header to swap in a different `.json` file
 - **Drag and drop** any `.json` file anywhere onto the page
-- Click **↺ Reload JSON** to re-fetch after updating the file
 
 ---
 
