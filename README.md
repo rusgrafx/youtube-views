@@ -5,6 +5,8 @@ A two-part tool for tracking YouTube song view counts over time:
 - **`youtube_views.py`** — scrapes view counts from a list of YouTube URLs and saves them to a JSON file. Runs locally or as an AWS Lambda on a daily schedule.
 - **`dashboard.html`** — a lightweight, zero-dependency browser dashboard that visualises the data. No build step, no server required.
 
+![Dashboard screenshot](screenshot.png)
+
 ---
 
 ## Features
@@ -28,6 +30,7 @@ your-folder/
 ├── youtube_views.py      # Scraper — fetches view counts and writes JSON
 ├── urls.txt              # One YouTube URL per line
 ├── dashboard.html        # The dashboard (open this in a browser)
+├── screenshot.png        # Dashboard screenshot (for README)
 └── 2026_views_data.json  # Generated data file (year-based filename)
 ```
 
