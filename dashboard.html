@@ -28,173 +28,82 @@
     overflow-x: hidden;
   }
 
-  /* ── UPLOAD SCREEN ── */
-  #upload-screen {
+  /* ── LOADING SCREEN ── */
+  #loading-screen {
     min-height: 100vh;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px 24px;
-    position: relative;
+    flex-direction: column;
+    gap: 18px;
   }
 
-  #upload-screen::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 55% 45% at 15% 25%, rgba(232,255,71,0.05) 0%, transparent 55%),
-      radial-gradient(ellipse 45% 55% at 85% 75%, rgba(255,107,53,0.04) 0%, transparent 55%);
-    pointer-events: none;
+  .spinner {
+    width: 32px; height: 32px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
   }
 
-  .upload-inner {
-    max-width: 520px;
-    width: 100%;
-    text-align: center;
-    position: relative;
-    z-index: 1;
-  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  .eyebrow {
-    font-size: 10px;
-    letter-spacing: 0.35em;
+  .loading-label {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--muted2);
     text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 18px;
-    display: block;
   }
 
-  .upload-title {
+  /* ── ERROR SCREEN ── */
+  #error-screen {
+    display: none;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+    padding: 40px;
+    text-align: center;
+  }
+
+  .error-icon { font-size: 36px; }
+
+  .error-title {
     font-family: 'Syne', sans-serif;
-    font-size: clamp(32px, 7vw, 56px);
+    font-size: 20px;
     font-weight: 800;
-    line-height: 1.0;
-    color: #fff;
-    margin-bottom: 16px;
+    color: var(--accent2);
   }
 
-  .upload-title em {
-    color: var(--accent);
-    font-style: normal;
-  }
-
-  .upload-sub {
+  .error-detail {
     font-size: 12px;
     color: var(--muted2);
+    max-width: 420px;
     line-height: 1.8;
-    margin-bottom: 44px;
   }
 
-  .drop-zone {
-    border: 1.5px dashed var(--border);
-    border-radius: 12px;
-    padding: 52px 32px;
-    cursor: pointer;
-    transition: all 0.25s ease;
+  .btn-upload-alt {
+    margin-top: 8px;
     background: var(--surface);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .drop-zone::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(232,255,71,0.04) 0%, transparent 70%);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  .drop-zone:hover::before,
-  .drop-zone.drag-over::before {
-    opacity: 1;
-  }
-
-  .drop-zone:hover,
-  .drop-zone.drag-over {
-    border-color: var(--accent);
-    background: #161616;
-  }
-
-  .drop-icon {
-    width: 52px;
-    height: 52px;
-    margin: 0 auto 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    font-size: 22px;
-    transition: all 0.25s;
-    background: var(--surface2);
-  }
-
-  .drop-zone:hover .drop-icon,
-  .drop-zone.drag-over .drop-icon {
-    border-color: var(--accent);
-    background: rgba(232,255,71,0.08);
-  }
-
-  .drop-label {
-    font-family: 'Syne', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
+    border: 1px solid var(--border);
     color: var(--text);
-    margin-bottom: 8px;
-  }
-
-  .drop-hint {
+    font-family: 'DM Mono', monospace;
     font-size: 11px;
-    color: var(--muted2);
+    padding: 10px 22px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
     letter-spacing: 0.05em;
   }
 
-  .drop-hint span {
-    color: var(--accent);
-    cursor: pointer;
-    text-decoration: underline;
-    text-decoration-color: rgba(232,255,71,0.4);
-  }
-
-  #file-input { display: none; }
-
-  .format-note {
-    margin-top: 24px;
-    padding: 14px 20px;
-    background: var(--surface2);
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    font-size: 11px;
-    color: var(--muted2);
-    text-align: left;
-    line-height: 1.9;
-  }
-
-  .format-note strong { color: var(--accent); font-weight: 500; }
-
-  .error-msg {
-    margin-top: 16px;
-    padding: 12px 18px;
-    background: rgba(255,107,53,0.08);
-    border: 1px solid rgba(255,107,53,0.3);
-    border-radius: 8px;
-    font-size: 12px;
-    color: var(--accent2);
-    display: none;
-  }
+  .btn-upload-alt:hover { border-color: var(--accent); color: var(--accent); }
 
   /* ── DASHBOARD ── */
-  #dashboard {
-    display: none;
-    min-height: 100vh;
-    padding: 0;
-  }
+  #dashboard { display: none; min-height: 100vh; }
 
   .dash-header {
-    padding: 24px 32px 20px;
+    padding: 20px 32px;
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
@@ -203,7 +112,7 @@
     flex-wrap: wrap;
     position: sticky;
     top: 0;
-    background: rgba(13,13,13,0.95);
+    background: rgba(13,13,13,0.96);
     backdrop-filter: blur(12px);
     z-index: 10;
   }
@@ -227,41 +136,44 @@
 
   @keyframes pulse {
     0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.7); }
+    50%       { opacity: 0.5; transform: scale(0.7); }
   }
 
-  .dash-file-info {
-    font-size: 11px;
-    color: var(--muted2);
+  .dash-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
   }
 
+  .dash-file-info { font-size: 11px; color: var(--muted2); }
   .dash-file-info strong { color: var(--text); }
 
-  .btn-reset {
+  .btn-sm {
     background: var(--surface2);
     border: 1px solid var(--border);
     color: var(--muted2);
     font-family: 'DM Mono', monospace;
     font-size: 11px;
-    padding: 7px 16px;
+    padding: 7px 14px;
     border-radius: 6px;
     cursor: pointer;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
     transition: all 0.2s;
+    white-space: nowrap;
   }
 
-  .btn-reset:hover {
-    border-color: var(--accent2);
-    color: var(--accent2);
-  }
+  .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
 
+  #file-input { display: none; }
+
+  /* ── BODY ── */
   .dash-body {
     padding: 32px;
     max-width: 1100px;
     margin: 0 auto;
   }
 
-  /* Stats row */
   .stats-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -298,13 +210,8 @@
     word-break: break-word;
   }
 
-  .stat-card .sc-sub {
-    font-size: 10px;
-    color: var(--muted2);
-    margin-top: 5px;
-  }
+  .stat-card .sc-sub { font-size: 10px; color: var(--muted2); margin-top: 5px; }
 
-  /* Date tabs */
   .section-header {
     display: flex;
     align-items: center;
@@ -323,35 +230,60 @@
     color: var(--muted2);
   }
 
-  .date-tabs {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
+  .date-select-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
   }
 
-  .date-tab {
+  .date-select-wrap::after {
+    content: '▾';
+    position: absolute;
+    right: 12px;
+    font-size: 10px;
+    color: var(--accent);
+    pointer-events: none;
+  }
+
+  .date-select {
+    appearance: none;
     background: var(--surface);
     border: 1px solid var(--border);
-    padding: 6px 14px;
-    border-radius: 100px;
+    color: var(--text);
     font-family: 'DM Mono', monospace;
     font-size: 11px;
     letter-spacing: 0.06em;
-    color: var(--muted2);
+    padding: 7px 32px 7px 14px;
+    border-radius: 6px;
     cursor: pointer;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+
+  .date-select:hover, .date-select:focus { border-color: var(--accent); }
+
+  .date-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .date-arrow {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted2);
+    font-size: 12px;
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
     transition: all 0.2s;
+    flex-shrink: 0;
   }
 
-  .date-tab:hover { border-color: var(--muted2); color: var(--text); }
+  .date-arrow:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .date-arrow:disabled { opacity: 0.25; cursor: default; }
 
-  .date-tab.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #000;
-    font-weight: 500;
-  }
-
-  /* Chart */
   .chart-container {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -385,7 +317,6 @@
     border-radius: 3px;
     height: 24px;
     overflow: hidden;
-    position: relative;
   }
 
   .bar-fill {
@@ -394,8 +325,6 @@
     width: 0;
     transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
-    display: flex;
-    align-items: center;
   }
 
   .bar-fill::after {
@@ -403,16 +332,11 @@
     position: absolute;
     right: 0; top: 0;
     width: 3px; height: 100%;
-    background: rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.35);
     border-radius: 0 3px 3px 0;
   }
 
-  .bar-meta {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-  }
+  .bar-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
 
   .bar-views {
     font-family: 'Syne', sans-serif;
@@ -421,15 +345,10 @@
     color: #fff;
   }
 
-  .bar-delta {
-    font-size: 10px;
-    color: #5cff8a;
-  }
-
+  .bar-delta { font-size: 10px; color: #5cff8a; }
   .bar-delta.neg { color: var(--accent2); }
   .bar-delta.zero { color: var(--muted2); }
 
-  /* Multi-date sparkline view */
   .timeline-section {
     margin-top: 32px;
     background: var(--surface);
@@ -449,17 +368,9 @@
   }
 
   .spark-row:last-child { border-bottom: none; }
+  canvas.spark { width: 100%; height: 36px; display: block; }
 
-  canvas.spark {
-    width: 100%;
-    height: 36px;
-    display: block;
-  }
-
-  .spark-growth {
-    font-size: 11px;
-    text-align: right;
-  }
+  .spark-growth { font-size: 11px; text-align: right; }
 
   .spark-growth .pct {
     font-family: 'Syne', sans-serif;
@@ -470,18 +381,35 @@
   }
 
   .spark-growth .pct.neg { color: var(--accent2); }
+  .spark-growth small { font-size: 10px; color: var(--muted2); }
 
-  .spark-growth small {
-    font-size: 10px;
-    color: var(--muted2);
+  /* Drag-over overlay */
+  .drop-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(13,13,13,0.9);
+    border: 2px dashed var(--accent);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--accent);
+    pointer-events: none;
   }
+
+  .drop-overlay.show { display: flex; }
+  .drop-overlay span { font-size: 13px; font-family: 'DM Mono', monospace; font-weight: 400; color: var(--muted2); }
 
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(14px); }
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* Tooltip */
   .tip {
     position: fixed;
     background: #1c1c1c;
@@ -496,63 +424,56 @@
     z-index: 999;
     white-space: nowrap;
   }
+
   .tip.show { opacity: 1; }
 
   @media (max-width: 600px) {
-    .song-row, .spark-row {
-      grid-template-columns: 120px 1fr 60px;
-    }
+    .song-row, .spark-row { grid-template-columns: 120px 1fr 60px; }
     .song-name { font-size: 10px; }
     .dash-body { padding: 20px 16px; }
+    .dash-header { padding: 16px; }
   }
 </style>
 </head>
 <body>
 
-<!-- UPLOAD SCREEN -->
-<div id="upload-screen">
-  <div class="upload-inner">
-    <span class="eyebrow">YouTube Analytics</span>
-    <h1 class="upload-title">Song Views<br><em>Dashboard</em></h1>
-    <p class="upload-sub">Load your CSV export to visualize<br>view counts and track song progress over time.</p>
-
-    <div class="drop-zone" id="drop-zone">
-      <div class="drop-icon">📊</div>
-      <div class="drop-label">Drop your CSV here</div>
-      <div class="drop-hint">or <span id="browse-link">browse files</span></div>
-      <input type="file" id="file-input" accept=".csv">
-    </div>
-
-    <div class="format-note">
-      <strong>Expected format:</strong> Video ID, Title, URL, then date columns (e.g. <strong>2026-03-05</strong>, <strong>2026-03-06</strong>…)<br>
-      Each row = one song. Each date column = view count for that date.
-    </div>
-
-    <div class="error-msg" id="error-msg"></div>
-  </div>
+<div id="loading-screen">
+  <div class="spinner"></div>
+  <div class="loading-label">Loading data…</div>
 </div>
 
-<!-- DASHBOARD -->
+<div id="error-screen">
+  <div class="error-icon">⚠️</div>
+  <div class="error-title">Could not load data</div>
+  <div class="error-detail" id="error-detail">
+    Make sure <strong>views_data.json</strong> is in the same folder as this HTML file,
+    or load a file manually below.
+  </div>
+  <button class="btn-upload-alt" id="btn-error-upload">📂 Load file manually</button>
+</div>
+
 <div id="dashboard">
   <div class="dash-header">
-    <div class="dash-brand">
-      <div class="dot"></div>
-      ViewTrack
+    <div class="dash-brand"><div class="dot"></div>ViewTrack</div>
+    <div class="dash-right">
+      <div class="dash-file-info" id="file-info"></div>
+      <button class="btn-sm" id="btn-load-file">📂 Load file</button>
+      <button class="btn-sm" id="btn-reload">↺ Reload JSON</button>
     </div>
-    <div class="dash-file-info" id="file-info"></div>
-    <button class="btn-reset" id="btn-reset">↩ Load new file</button>
   </div>
-
   <div class="dash-body">
     <div class="stats-row" id="stats-row"></div>
-
     <div class="section-header">
       <span class="section-title">Views by date</span>
-      <div class="date-tabs" id="date-tabs"></div>
+      <div class="date-nav">
+        <button class="date-arrow" id="date-prev" title="Previous date">‹</button>
+        <div class="date-select-wrap">
+          <select class="date-select" id="date-select"></select>
+        </div>
+        <button class="date-arrow" id="date-next" title="Next date">›</button>
+      </div>
     </div>
-
     <div class="chart-container" id="chart-container"></div>
-
     <div class="timeline-section" id="timeline-section">
       <div class="section-header" style="margin-bottom:16px">
         <span class="section-title">Growth sparklines</span>
@@ -562,159 +483,109 @@
   </div>
 </div>
 
+<div class="drop-overlay" id="drop-overlay">
+  Drop to load file
+  <span>JSON accepted</span>
+</div>
+
 <div class="tip" id="tip"></div>
+<input type="file" id="file-input" accept=".json">
 
 <script>
-// ── STATE ──────────────────────────────────────────────────────
-let csvData = null;   // { songs: [{title, views:{date:n}}], dates: [] }
-let activeDate = null;
-
+const JSON_FILE = `${new Date().getFullYear()}_views_data.json`;
 const COLORS = [
   "#e8ff47","#ff6b35","#00d4ff","#ff4d9e","#7fff6e","#ffaa00","#a78bfa",
   "#34d399","#fb7185","#38bdf8","#fbbf24","#c084fc"
 ];
 
-// ── UPLOAD LOGIC ───────────────────────────────────────────────
-const dropZone   = document.getElementById("drop-zone");
-const fileInput  = document.getElementById("file-input");
-const browseLink = document.getElementById("browse-link");
-const errorMsg   = document.getElementById("error-msg");
+let csvData = null;
+let activeDate = null;
 
-browseLink.addEventListener("click", () => fileInput.click());
-fileInput.addEventListener("change", e => {
-  if (e.target.files[0]) handleFile(e.target.files[0]);
-});
-
-dropZone.addEventListener("dragover", e => {
-  e.preventDefault();
-  dropZone.classList.add("drag-over");
-});
-dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag-over"));
-dropZone.addEventListener("drop", e => {
-  e.preventDefault();
-  dropZone.classList.remove("drag-over");
-  const f = e.dataTransfer.files[0];
-  if (f) handleFile(f);
-});
-
-document.getElementById("btn-reset").addEventListener("click", () => {
-  csvData = null;
-  activeDate = null;
-  fileInput.value = "";
-  document.getElementById("dashboard").style.display = "none";
-  document.getElementById("upload-screen").style.display = "flex";
-  errorMsg.style.display = "none";
-});
-
-function showError(msg) {
-  errorMsg.textContent = "⚠ " + msg;
-  errorMsg.style.display = "block";
+// ── SCREENS ───────────────────────────────────────────────────
+function show(name) {
+  document.getElementById("loading-screen").style.display = name === "loading" ? "flex" : "none";
+  document.getElementById("error-screen").style.display   = name === "error"   ? "flex" : "none";
+  document.getElementById("dashboard").style.display      = name === "dash"    ? "block": "none";
 }
 
-function handleFile(file) {
-  if (!file.name.toLowerCase().endsWith(".csv")) {
-    showError("Please upload a .csv file.");
-    return;
+// ── BOOT ──────────────────────────────────────────────────────
+async function boot() {
+  show("loading");
+  try {
+    const res = await fetch(JSON_FILE);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    loadData(await res.json(), JSON_FILE);
+  } catch (e) {
+    document.getElementById("error-detail").innerHTML =
+      `Make sure <strong>${JSON_FILE}</strong> is in the same folder as this HTML file, or load a file manually.`;
+    show("error");
   }
-  errorMsg.style.display = "none";
+}
+
+// ── DATA ──────────────────────────────────────────────────────
+function loadData(json, sourceName) {
+  if (!json.songs || !json.dates) throw new Error("Invalid JSON structure.");
+  csvData = json;
+  activeDate = csvData.dates[csvData.dates.length - 1];
+  document.getElementById("file-info").innerHTML =
+    `<strong>${sourceName}</strong> &nbsp;·&nbsp; ${csvData.songs.length} songs &nbsp;·&nbsp; ${csvData.dates.length} date${csvData.dates.length > 1 ? 's' : ''}`;
+  show("dash");
+  renderDashboard();
+}
+
+// ── FILE HANDLING ─────────────────────────────────────────────
+const fileInput = document.getElementById("file-input");
+
+fileInput.addEventListener("change", e => {
+  const f = e.target.files[0];
+  if (f) handleFile(f);
+  fileInput.value = "";
+});
+
+function handleFile(file) {
   const reader = new FileReader();
   reader.onload = e => {
     try {
-      csvData = parseCSV(e.target.result);
-      if (!csvData.songs.length) throw new Error("No song rows found.");
-      if (!csvData.dates.length) throw new Error("No date columns found.");
-      document.getElementById("file-info").innerHTML =
-        `<strong>${file.name}</strong> &nbsp;·&nbsp; ${csvData.songs.length} songs &nbsp;·&nbsp; ${csvData.dates.length} date${csvData.dates.length > 1 ? 's' : ''}`;
-      activeDate = csvData.dates[csvData.dates.length - 1];
-      document.getElementById("upload-screen").style.display = "none";
-      document.getElementById("dashboard").style.display = "block";
-      renderDashboard();
-    } catch (err) {
-      showError(err.message || "Could not parse CSV.");
-    }
+      loadData(JSON.parse(e.target.result), file.name);
+    } catch (err) { alert("Error loading file: " + err.message); }
   };
   reader.readAsText(file, "UTF-8");
 }
 
-// ── CSV PARSER ─────────────────────────────────────────────────
-function parseCSV(text) {
-  // Remove BOM
-  text = text.replace(/^\uFEFF/, "");
-  const lines = text.split(/\r?\n/).filter(l => l.trim());
-  if (!lines.length) throw new Error("Empty file.");
+// ── DRAG & DROP ───────────────────────────────────────────────
+const dropOverlay = document.getElementById("drop-overlay");
+let dragCnt = 0;
+document.addEventListener("dragenter", e => {
+  if ([...e.dataTransfer.items].some(i => i.kind === "file")) { dragCnt++; dropOverlay.classList.add("show"); }
+});
+document.addEventListener("dragleave", () => { if (--dragCnt <= 0) { dragCnt = 0; dropOverlay.classList.remove("show"); } });
+document.addEventListener("dragover", e => e.preventDefault());
+document.addEventListener("drop", e => {
+  e.preventDefault(); dragCnt = 0; dropOverlay.classList.remove("show");
+  const f = e.dataTransfer.files[0]; if (f) handleFile(f);
+});
 
-  const headers = splitCSVLine(lines[0]);
-  // Detect date columns: YYYY-MM-DD pattern or any col after col 2
-  const dateCols = [];
-  headers.forEach((h, i) => {
-    if (i >= 2 && /\d{4}-\d{2}-\d{2}/.test(h.trim())) dateCols.push({ index: i, date: h.trim() });
-    // fallback: treat columns after index 2 as dates if header looks numeric/date-like
-    else if (i >= 3 && !["url","link","id","title","name"].includes(h.trim().toLowerCase())) {
-      dateCols.push({ index: i, date: h.trim() });
-    }
-  });
+// ── BUTTON WIRING ─────────────────────────────────────────────
+document.getElementById("btn-load-file").addEventListener("click", () => fileInput.click());
+document.getElementById("btn-error-upload").addEventListener("click", () => fileInput.click());
+document.getElementById("btn-reload").addEventListener("click", () => { show("loading"); setTimeout(boot, 200); });
 
-  // Find title column (index 1 preferred)
-  const titleIdx = 1;
-
-  const songs = [];
-  for (let i = 1; i < lines.length; i++) {
-    const cols = splitCSVLine(lines[i]);
-    if (!cols[titleIdx]) continue;
-    const views = {};
-    dateCols.forEach(dc => {
-      const v = parseInt(cols[dc.index]);
-      if (!isNaN(v)) views[dc.date] = v;
-    });
-    if (Object.keys(views).length === 0) continue;
-    songs.push({ title: cols[titleIdx].trim(), views });
-  }
-
-  return { songs, dates: dateCols.map(d => d.date) };
-}
-
-function splitCSVLine(line) {
-  const result = [];
-  let cur = "", inQ = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (c === '"') { inQ = !inQ; continue; }
-    if (c === ',' && !inQ) { result.push(cur); cur = ""; continue; }
-    cur += c;
-  }
-  result.push(cur);
-  return result;
-}
-
-// ── DASHBOARD RENDER ───────────────────────────────────────────
+// ── RENDER ────────────────────────────────────────────────────
 function renderDashboard() {
-  renderStats();
-  renderDateTabs();
-  renderChart();
-  renderSparklines();
+  renderStats(); renderDateTabs(); renderChart(); renderSparklines();
 }
 
 function renderStats() {
   const total = csvData.songs.reduce((s, x) => s + (x.views[activeDate] || 0), 0);
-  const allVals = csvData.songs.map(s => s.views[activeDate] || 0);
-  const top = csvData.songs.reduce((a, b) =>
-    (b.views[activeDate] || 0) > (a.views[activeDate] || 0) ? b : a);
-  const prevDate = csvData.dates[csvData.dates.indexOf(activeDate) - 1];
-  const totalPrev = prevDate
-    ? csvData.songs.reduce((s, x) => s + (x.views[prevDate] || 0), 0)
-    : null;
-
-  let growthHtml = "";
-  if (totalPrev !== null) {
-    const delta = total - totalPrev;
-    growthHtml = `<div class="sc-sub">${delta >= 0 ? "+" : ""}${delta.toLocaleString()} vs prev</div>`;
-  }
+  const top   = csvData.songs.reduce((a, b) => (b.views[activeDate]||0) > (a.views[activeDate]||0) ? b : a);
+  const prev  = csvData.dates[csvData.dates.indexOf(activeDate) - 1];
+  const tPrev = prev ? csvData.songs.reduce((s, x) => s + (x.views[prev] || 0), 0) : null;
 
   document.getElementById("stats-row").innerHTML = `
     <div class="stat-card">
       <span class="sc-label">Total Views</span>
       <div class="sc-val">${total.toLocaleString()}</div>
-      ${growthHtml}
+      ${tPrev !== null ? `<div class="sc-sub">${total-tPrev >= 0 ? '+' : ''}${(total-tPrev).toLocaleString()} vs prev</div>` : ''}
     </div>
     <div class="stat-card">
       <span class="sc-label">Top Song</span>
@@ -730,73 +601,74 @@ function renderStats() {
       <span class="sc-label">Dates</span>
       <div class="sc-val">${csvData.dates.length}</div>
       <div class="sc-sub">data points</div>
-    </div>
-  `;
+    </div>`;
 }
 
 function renderDateTabs() {
-  document.getElementById("date-tabs").innerHTML = csvData.dates.map(d => `
-    <button class="date-tab ${d === activeDate ? 'active' : ''}" data-date="${d}">${formatDate(d)}</button>
-  `).join('');
+  const sel = document.getElementById("date-select");
+  sel.innerHTML = csvData.dates.map(d =>
+    `<option value="${d}" ${d === activeDate ? 'selected' : ''}>${formatDate(d)}</option>`
+  ).join('');
 
-  document.querySelectorAll('.date-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      activeDate = btn.dataset.date;
-      document.querySelectorAll('.date-tab').forEach(b => b.classList.toggle('active', b.dataset.date === activeDate));
-      renderStats();
-      renderChart();
-    });
+  sel.addEventListener('change', () => {
+    activeDate = sel.value;
+    updateDateNav();
+    renderStats(); renderChart();
   });
+
+  document.getElementById("date-prev").addEventListener('click', () => {
+    const i = csvData.dates.indexOf(activeDate);
+    if (i > 0) { activeDate = csvData.dates[i - 1]; sel.value = activeDate; updateDateNav(); renderStats(); renderChart(); }
+  });
+
+  document.getElementById("date-next").addEventListener('click', () => {
+    const i = csvData.dates.indexOf(activeDate);
+    if (i < csvData.dates.length - 1) { activeDate = csvData.dates[i + 1]; sel.value = activeDate; updateDateNav(); renderStats(); renderChart(); }
+  });
+
+  updateDateNav();
+}
+
+function updateDateNav() {
+  const i = csvData.dates.indexOf(activeDate);
+  document.getElementById("date-prev").disabled = i <= 0;
+  document.getElementById("date-next").disabled = i >= csvData.dates.length - 1;
+  document.getElementById("date-select").value = activeDate;
 }
 
 function renderChart() {
-  const prevDate = csvData.dates[csvData.dates.indexOf(activeDate) - 1];
-  const sorted = [...csvData.songs].sort((a, b) =>
-    (b.views[activeDate] || 0) - (a.views[activeDate] || 0));
-  const max = Math.max(...sorted.map(s => s.views[activeDate] || 0));
-  const tip = document.getElementById("tip");
-
+  const prev     = csvData.dates[csvData.dates.indexOf(activeDate) - 1];
+  const sorted   = [...csvData.songs].sort((a, b) => (b.views[activeDate]||0) - (a.views[activeDate]||0));
+  const max      = Math.max(...sorted.map(s => s.views[activeDate] || 0));
+  const tip      = document.getElementById("tip");
   const container = document.getElementById("chart-container");
+
   container.innerHTML = sorted.map((song, i) => {
-    const v = song.views[activeDate] || 0;
-    const pv = prevDate ? (song.views[prevDate] || 0) : null;
+    const v     = song.views[activeDate] || 0;
+    const pv    = prev ? (song.views[prev] || 0) : null;
     const delta = pv !== null ? v - pv : null;
-    const pct = max > 0 ? (v / max * 100).toFixed(1) : 0;
+    const pct   = max > 0 ? (v / max * 100).toFixed(1) : 0;
     const color = COLORS[csvData.songs.indexOf(song) % COLORS.length];
-
-    const deltaHtml = delta !== null
-      ? `<span class="bar-delta ${delta < 0 ? 'neg' : delta === 0 ? 'zero' : ''}">${delta >= 0 ? '+' : ''}${delta}</span>`
-      : '';
-
+    const dHtml = delta !== null
+      ? `<span class="bar-delta ${delta < 0 ? 'neg' : delta === 0 ? 'zero' : ''}">${delta >= 0 ? '+' : ''}${delta}</span>` : '';
+    const href  = song.url ? `href="${song.url}" target="_blank"` : '';
     return `
-      <div class="song-row" style="animation-delay:${i * 0.04}s">
-        <div class="song-name" title="${song.title}">${song.title}</div>
+      <div class="song-row">
+        <a class="song-name" ${href} style="text-decoration:none;color:inherit" title="${song.title}">${song.title}</a>
         <div class="bar-track">
-          <div class="bar-fill" data-target="${pct}"
-            style="background: linear-gradient(90deg, ${color}99, ${color});">
-          </div>
+          <div class="bar-fill" data-target="${pct}" style="background:linear-gradient(90deg,${color}99,${color})"></div>
         </div>
-        <div class="bar-meta">
-          <span class="bar-views">${v.toLocaleString()}</span>
-          ${deltaHtml}
-        </div>
-      </div>
-    `;
+        <div class="bar-meta"><span class="bar-views">${v.toLocaleString()}</span>${dHtml}</div>
+      </div>`;
   }).join('');
 
-  // Animate bars
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    container.querySelectorAll('.bar-fill').forEach(bar => {
-      bar.style.width = bar.dataset.target + '%';
-    });
+    container.querySelectorAll('.bar-fill').forEach(b => { b.style.width = b.dataset.target + '%'; });
   }));
 
-  // Tooltips
   container.querySelectorAll('.song-row').forEach((row, i) => {
-    const song = sorted[i];
     row.addEventListener('mousemove', e => {
-      const v = song.views[activeDate] || 0;
-      tip.textContent = `${song.title}  ·  ${v.toLocaleString()} views`;
+      tip.textContent = `${sorted[i].title}  ·  ${(sorted[i].views[activeDate]||0).toLocaleString()} views`;
       tip.style.left = (e.clientX + 14) + 'px';
       tip.style.top  = (e.clientY - 32) + 'px';
       tip.classList.add('show');
@@ -806,116 +678,66 @@ function renderChart() {
 }
 
 function renderSparklines() {
-  if (csvData.dates.length < 2) {
-    document.getElementById("timeline-section").style.display = "none";
-    return;
-  }
+  if (csvData.dates.length < 2) { document.getElementById("timeline-section").style.display = "none"; return; }
   document.getElementById("timeline-section").style.display = "";
-
-  const sorted = [...csvData.songs].sort((a, b) => {
-    const aLast = a.views[csvData.dates[csvData.dates.length-1]] || 0;
-    const bLast = b.views[csvData.dates[csvData.dates.length-1]] || 0;
-    return bLast - aLast;
-  });
-
-  const firstDate = csvData.dates[0];
-  const lastDate  = csvData.dates[csvData.dates.length - 1];
+  const sorted = [...csvData.songs].sort((a, b) =>
+    (b.views[csvData.dates.at(-1)]||0) - (a.views[csvData.dates.at(-1)]||0));
+  const first = csvData.dates[0], last = csvData.dates.at(-1);
 
   document.getElementById("sparklines").innerHTML = sorted.map((song, i) => {
-    const first = song.views[firstDate] || 0;
-    const last  = song.views[lastDate] || 0;
-    const pctChange = first > 0 ? ((last - first) / first * 100).toFixed(1) : null;
-    const color = COLORS[csvData.songs.indexOf(song) % COLORS.length];
-    const canvasId = `spark-${i}`;
-
-    const pctHtml = pctChange !== null
-      ? `<span class="pct ${parseFloat(pctChange) < 0 ? 'neg' : ''}">${parseFloat(pctChange) >= 0 ? '+' : ''}${pctChange}%</span>`
-      : `<span class="pct">—</span>`;
-
+    const fv = song.views[first] || 0, lv = song.views[last] || 0;
+    const pct = fv > 0 ? ((lv - fv) / fv * 100).toFixed(1) : null;
+    const neg = pct !== null && parseFloat(pct) < 0;
     return `
       <div class="spark-row">
         <div class="song-name" title="${song.title}">${song.title}</div>
-        <canvas class="spark" id="${canvasId}" height="36"></canvas>
+        <canvas class="spark" id="spark-${i}" height="36"></canvas>
         <div class="spark-growth">
-          ${pctHtml}
+          <span class="pct ${neg ? 'neg' : ''}">${pct !== null ? (parseFloat(pct) >= 0 ? '+' : '') + pct + '%' : '—'}</span>
           <small>total growth</small>
         </div>
-      </div>
-    `;
+      </div>`;
   }).join('');
 
-  // Draw sparklines after DOM update
   requestAnimationFrame(() => {
     sorted.forEach((song, i) => {
       const canvas = document.getElementById(`spark-${i}`);
       if (!canvas) return;
-      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
-      canvas.height = 36 * window.devicePixelRatio;
+      canvas.width  = canvas.offsetWidth * devicePixelRatio;
+      canvas.height = 36 * devicePixelRatio;
       const ctx = canvas.getContext('2d');
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-
+      ctx.scale(devicePixelRatio, devicePixelRatio);
       const vals = csvData.dates.map(d => song.views[d] ?? null).filter(v => v !== null);
       if (vals.length < 2) return;
-
-      const w = canvas.offsetWidth;
-      const h = 36;
-      const pad = 4;
-      const minV = Math.min(...vals);
-      const maxV = Math.max(...vals);
-      const range = maxV - minV || 1;
-
+      const w = canvas.offsetWidth, h = 36, p = 4;
+      const mn = Math.min(...vals), mx = Math.max(...vals), rng = mx - mn || 1;
       const color = COLORS[csvData.songs.indexOf(song) % COLORS.length];
+      const px = j => (j / (vals.length - 1)) * (w - p*2) + p;
+      const py = v => h - p - ((v - mn) / rng) * (h - p*2);
 
-      // Gradient fill
       const grad = ctx.createLinearGradient(0, 0, 0, h);
-      grad.addColorStop(0, color + "44");
-      grad.addColorStop(1, color + "00");
+      grad.addColorStop(0, color + "44"); grad.addColorStop(1, color + "00");
+      ctx.beginPath();
+      vals.forEach((v, j) => j === 0 ? ctx.moveTo(px(j), py(v)) : ctx.lineTo(px(j), py(v)));
+      ctx.lineTo(px(vals.length-1), h); ctx.lineTo(p, h); ctx.closePath();
+      ctx.fillStyle = grad; ctx.fill();
 
       ctx.beginPath();
-      vals.forEach((v, j) => {
-        const x = (j / (vals.length - 1)) * (w - pad*2) + pad;
-        const y = h - pad - ((v - minV) / range) * (h - pad*2);
-        j === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-      });
-      // Fill area
-      const lastX = ((vals.length-1) / (vals.length-1)) * (w - pad*2) + pad;
-      ctx.lineTo(lastX, h);
-      ctx.lineTo(pad, h);
-      ctx.closePath();
-      ctx.fillStyle = grad;
-      ctx.fill();
+      vals.forEach((v, j) => j === 0 ? ctx.moveTo(px(j), py(v)) : ctx.lineTo(px(j), py(v)));
+      ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.lineJoin = "round"; ctx.stroke();
 
-      // Line
       ctx.beginPath();
-      vals.forEach((v, j) => {
-        const x = (j / (vals.length - 1)) * (w - pad*2) + pad;
-        const y = h - pad - ((v - minV) / range) * (h - pad*2);
-        j === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-      });
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1.5;
-      ctx.lineJoin = "round";
-      ctx.stroke();
-
-      // Endpoint dot
-      const lastVal = vals[vals.length - 1];
-      const ex = (w - pad);
-      const ey = h - pad - ((lastVal - minV) / range) * (h - pad*2);
-      ctx.beginPath();
-      ctx.arc(ex, ey, 3, 0, Math.PI * 2);
-      ctx.fillStyle = color;
-      ctx.fill();
+      ctx.arc(px(vals.length-1), py(vals.at(-1)), 3, 0, Math.PI*2);
+      ctx.fillStyle = color; ctx.fill();
     });
   });
 }
 
 function formatDate(d) {
-  try {
-    const [y, m, day] = d.split("-");
-    if (y && m && day) return `${day}.${m}.${y.slice(2)}`;
-  } catch(e) {}
-  return d;
+  try { const [y, m, day] = d.split("-"); return `${day}.${m}.${y.slice(2)}`; } catch { return d; }
 }
+
+boot();
 </script>
 </body>
 </html>

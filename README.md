@@ -1,38 +1,113 @@
-# YouTube Video View Counter
+# ViewTrack
 
-Reads URLs from a text file (local or S3), fetches view counts, and updates
-a CSV where each video is a unique row and each run date adds a new column.
+A two-part tool for tracking YouTube song view counts over time:
 
-## CSV layout:
+- **`youtube_views.py`** — scrapes view counts from a list of YouTube URLs and saves them to a JSON file. Runs locally or as an AWS Lambda on a daily schedule.
+- **`dashboard.html`** — a lightweight, zero-dependency browser dashboard that visualises the data. No build step, no server required.
 
-`Video ID | Title | URL | 2026-03-01 | 2026-03-02 | ...`
+---
 
-## Local usage
+## Features
+
+- **Auto-loads data** from `YYYY_views_data.json` on startup
+- **Ranked bar chart** showing view counts per song for any selected date
+- **Date dropdown** with ‹ › arrow navigation — scales to any number of dates
+- **Delta indicators** showing view change vs. the previous date
+- **Growth sparklines** per song across the full date range
+- **Summary stats** — total views, top song, delta vs. previous date
+- **Song links** — song names are clickable and open the YouTube URL
+- **Manual file loading** — swap in a new `.json` via button or drag & drop anywhere on the page
+- **↺ Reload** button to re-fetch the JSON after updating it
+
+---
+
+## File Structure
 
 ```
-    python youtube_views.py                        # urls.txt -> YYYY_views_log.csv
-    python youtube_views.py urls.txt               # custom URL file
-    python youtube_views.py urls.txt my_log.csv    # custom URL file and CSV
+your-folder/
+├── youtube_views.py      # Scraper — fetches view counts and writes JSON
+├── urls.txt              # One YouTube URL per line
+├── dashboard.html        # The dashboard (open this in a browser)
+└── 2026_views_data.json  # Generated data file (year-based filename)
 ```
 
-## AWS Lambda usage
-Deploy this file as a Lambda function (Python 3.12, handler: youtube_views.lambda_handler).
+The dashboard automatically looks for `YYYY_views_data.json` matching the current year.
 
-Set these environment variables in the Lambda configuration:
+---
+
+## Scraper (`youtube_views.py`)
+
+The scraper reads URLs from a text file, fetches the current view count for each video, and updates the JSON data file. Each daily run adds a new date column to the existing data.
+
+### Local usage
+
+```bash
+python youtube_views.py                            # urls.txt -> YYYY_views_data.json
+python youtube_views.py urls.txt                   # custom URL file
+python youtube_views.py urls.txt my_data.json      # custom URL file and JSON
+```
+
+`urls.txt` format — one YouTube URL per line, lines starting with `#` are ignored:
 
 ```
-    S3_BUCKET      my-youtube-views        (default)
-    S3_URLS_KEY    youtube/urls.txt        (default: urls.txt)
-    S3_CSV_PREFIX  youtube/                (default: "" - root of bucket)
+https://www.youtube.com/watch?v=RFjUGaRPHBw
+https://www.youtube.com/watch?v=vLulRBU5Ysc
+# this line is ignored
+https://youtu.be/pdnlFh683xk
 ```
 
-The CSV is read from and written back to:
+### AWS Lambda usage
 
-`s3://<S3_BUCKET>/<S3_CSV_PREFIX><YYYY>_views_log.csv`
+Deploy `youtube_views.py` as a Lambda function (Python 3.12, handler: `youtube_views.lambda_handler`) and configure the following environment variables:
 
-IAM permissions required for the Lambda execution role:
+| Variable | Default | Description |
+|---|---|---|
+| `S3_BUCKET` | `my-youtube-views` | S3 bucket name |
+| `S3_URLS_KEY` | `urls.txt` | Path to the URLs file in the bucket |
+| `S3_JSON_PREFIX` | `` | Key prefix for the JSON output file |
 
-- `s3:GetObject, s3:PutObject`  on  `arn:aws:s3:::my-youtube-views/*`
-- `s3:ListBucket`  on  `arn:aws:s3:::my-youtube-views`
+The JSON is read from and written back to `s3://<S3_BUCKET>/<S3_JSON_PREFIX><YYYY>_views_data.json`.
+
+Required IAM permissions for the Lambda execution role:
+- `s3:GetObject`, `s3:PutObject` on `arn:aws:s3:::my-youtube-views/*`
+- `s3:ListBucket` on `arn:aws:s3:::my-youtube-views`
 
 Schedule with EventBridge: `cron(0 9 * * ? *)` runs every day at 09:00 UTC.
+
+---
+
+## Data Format
+
+```json
+{
+  "dates": ["2026-03-05", "2026-03-06", "2026-03-07"],
+  "songs": [
+    {
+      "id": "RFjUGaRPHBw",
+      "title": "Song Title",
+      "url": "https://www.youtube.com/watch?v=RFjUGaRPHBw",
+      "views": {
+        "2026-03-05": 45,
+        "2026-03-06": 46,
+        "2026-03-07": 47
+      }
+    }
+  ]
+}
+```
+
+---
+
+## Loading Data in the Dashboard
+
+The dashboard auto-fetches the JSON on startup. If it isn't found (e.g. when opening the HTML directly from the filesystem without a local server), an error screen appears with a **Load file manually** button. You can also:
+
+- Click **📂 Load file** in the header at any time to swap in a different `.json` file
+- **Drag and drop** any `.json` file anywhere onto the page
+- Click **↺ Reload JSON** to re-fetch after updating the file
+
+---
+
+## Browser Compatibility
+
+Works in any modern browser (Chrome, Firefox, Safari, Edge). No internet connection required after the Google Fonts load — fonts will gracefully fall back to system monospace if offline.

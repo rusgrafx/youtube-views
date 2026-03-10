@@ -1,26 +1,37 @@
 """
 YouTube Video View Counter
 Reads URLs from a text file (local or S3), fetches view counts, and updates
-a CSV where each video is a unique row and each run date adds a new column.
+a JSON file where each video is an entry and each run date adds a new data point.
 
-CSV layout:
-    Video ID | Title | URL | 2026-03-01 | 2026-03-02 | ...
+JSON layout:
+    {
+        "dates": ["2026-03-01", "2026-03-02", ...],
+        "songs": [
+            {
+                "id": "VIDEO_ID",
+                "title": "Song Title",
+                "url": "https://www.youtube.com/watch?v=VIDEO_ID",
+                "views": {"2026-03-01": 123, "2026-03-02": 456, ...}
+            },
+            ...
+        ]
+    }
 
 -- Local usage --
-    python youtube_views.py                        # urls.txt -> YYYY_views_log.csv
-    python youtube_views.py urls.txt               # custom URL file
-    python youtube_views.py urls.txt my_log.csv    # custom URL file and CSV
+    python youtube_views.py                            # urls.txt -> YYYY_views_data.json
+    python youtube_views.py urls.txt                   # custom URL file
+    python youtube_views.py urls.txt my_data.json      # custom URL file and JSON
 
 -- AWS Lambda usage --
 Deploy this file as a Lambda function (Python 3.12, handler: youtube_views.lambda_handler).
 Set these environment variables in the Lambda configuration:
 
-    S3_BUCKET      my-youtube-views        (default)
-    S3_URLS_KEY    youtube/urls.txt        (default: urls.txt)
-    S3_CSV_PREFIX  youtube/                (default: "" - root of bucket)
+    S3_BUCKET       my-youtube-views        (default)
+    S3_URLS_KEY     youtube/urls.txt        (default: urls.txt)
+    S3_JSON_PREFIX  youtube/                (default: "" - root of bucket)
 
-The CSV is read from and written back to:
-    s3://<S3_BUCKET>/<S3_CSV_PREFIX><YYYY>_views_log.csv
+The JSON is read from and written back to:
+    s3://<S3_BUCKET>/<S3_JSON_PREFIX><YYYY>_views_data.json
 
 IAM permissions required for the Lambda execution role:
     s3:GetObject, s3:PutObject  on  arn:aws:s3:::my-youtube-views/*
@@ -29,16 +40,12 @@ IAM permissions required for the Lambda execution role:
 Schedule with EventBridge: cron(0 9 * * ? *) runs every day at 09:00 UTC.
 """
 
-import csv
-import io
 import json
 import os
 import re
 import sys
 import urllib.request
 from datetime import datetime
-
-FIXED_HEADERS = ["Video ID", "Title", "URL"]
 
 
 # -- YouTube helpers -----------------------------------------------------------
@@ -82,10 +89,10 @@ def get_video_info(url):
     # than a desktop browser, so multiple fallbacks are needed.
     views = None
     view_patterns = [
-        r'"viewCount":"(\d+)"',                                             # desktop response
+        r'"viewCount":"(\d+)"',                                                             # desktop response
         r'"viewCount":\{"videoViewCountRenderer":\{"viewCount":\{"simpleText":"([\d,]+)',  # Lambda response
-        r'"originalViewCount":"(\d+)"',                                     # Lambda fallback
-        r'interactionCount"[^>]*content="(\d+)"',                          # meta tag fallback
+        r'"originalViewCount":"(\d+)"',                                                     # Lambda fallback
+        r'interactionCount"[^>]*content="(\d+)"',                                          # meta tag fallback
     ]
     for vp in view_patterns:
         m = re.search(vp, html)
@@ -138,21 +145,16 @@ def read_urls_local(filepath):
     return urls
 
 
-def load_csv_local(filepath):
+def load_json_local(filepath):
     if not os.path.exists(filepath) or os.path.getsize(filepath) == 0:
-        return list(FIXED_HEADERS), {}
-    with open(filepath, encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
-        headers = list(reader.fieldnames or FIXED_HEADERS)
-        rows = {row["Video ID"]: dict(row) for row in reader}
-    return headers, rows
+        return {"dates": [], "songs": []}
+    with open(filepath, encoding="utf-8") as f:
+        return json.load(f)
 
 
-def save_csv_local(filepath, headers, rows_by_id):
-    with open(filepath, "w", newline="", encoding="utf-8-sig") as f:
-        writer = csv.DictWriter(f, fieldnames=headers, extrasaction="ignore")
-        writer.writeheader()
-        writer.writerows(rows_by_id.values())
+def save_json_local(filepath, data):
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 # -- S3 I/O --------------------------------------------------------------------
@@ -175,41 +177,35 @@ def read_urls_s3(bucket, key):
     return urls
 
 
-def load_csv_s3(bucket, key):
+def load_json_s3(bucket, key):
     s3 = _s3()
     try:
         obj = s3.get_object(Bucket=bucket, Key=key)
-        raw = obj["Body"].read().decode("utf-8-sig")
-        reader = csv.DictReader(io.StringIO(raw))
-        headers = list(reader.fieldnames or FIXED_HEADERS)
-        rows = {row["Video ID"]: dict(row) for row in reader}
-        return headers, rows
+        return json.loads(obj["Body"].read().decode("utf-8"))
     except Exception as e:
         if "NoSuchKey" in type(e).__name__ or "NoSuchKey" in str(e):
-            return list(FIXED_HEADERS), {}
+            return {"dates": [], "songs": []}
         raise
 
 
-def save_csv_s3(bucket, key, headers, rows_by_id):
+def save_json_s3(bucket, key, data):
     s3 = _s3()
-    buf = io.StringIO()
-    writer = csv.DictWriter(buf, fieldnames=headers, extrasaction="ignore")
-    writer.writeheader()
-    writer.writerows(rows_by_id.values())
-    body = "\ufeff" + buf.getvalue()  # BOM for Excel Cyrillic/CJK support
     s3.put_object(
         Bucket=bucket,
         Key=key,
-        Body=body.encode("utf-8"),
-        ContentType="text/csv; charset=utf-8",
+        Body=json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8"),
+        ContentType="application/json; charset=utf-8",
     )
 
 
 # -- Core logic (shared by both modes) -----------------------------------------
 
-def run(urls, headers, rows_by_id, today, log):
-    if today not in headers:
-        headers.append(today)
+def run(urls, data, today, log):
+    if today not in data["dates"]:
+        data["dates"].append(today)
+
+    # Index existing songs by video ID for fast lookup
+    songs_by_id = {s["id"]: s for s in data["songs"]}
 
     updated = 0
     for i, url in enumerate(urls, 1):
@@ -217,35 +213,33 @@ def run(urls, headers, rows_by_id, today, log):
         try:
             info = get_video_info(url)
             vid = info["video_id"]
-            if vid not in rows_by_id:
-                row = {"Video ID": vid, "Title": info["title"], "URL": info["url"]}
-                for col in headers:
-                    if col not in FIXED_HEADERS:
-                        row.setdefault(col, "")
-                rows_by_id[vid] = row
+            if vid not in songs_by_id:
+                song = {"id": vid, "title": info["title"], "url": info["url"], "views": {}}
+                data["songs"].append(song)
+                songs_by_id[vid] = song
             else:
-                rows_by_id[vid]["Title"] = info["title"]
-                rows_by_id[vid]["URL"] = info["url"]
-            rows_by_id[vid][today] = info["views"]
+                songs_by_id[vid]["title"] = info["title"]
+                songs_by_id[vid]["url"]   = info["url"]
+            songs_by_id[vid]["views"][today] = info["views"]
             updated += 1
             log("        Title : " + info["title"])
             log("        Views : " + "{:,}".format(info["views"]) + "\n")
         except Exception as e:
             log("        Error : " + str(e) + "\n")
 
-    return headers, rows_by_id, updated
+    return data, updated
 
 
 # -- Lambda entry point --------------------------------------------------------
 
 def lambda_handler(event, context):
-    bucket     = os.environ.get("S3_BUCKET", "my-youtube-views")
-    urls_key   = os.environ.get("S3_URLS_KEY", "urls.txt")
-    csv_prefix = os.environ.get("S3_CSV_PREFIX", "")
+    bucket      = os.environ.get("S3_BUCKET", "my-youtube-views")
+    urls_key    = os.environ.get("S3_URLS_KEY", "urls.txt")
+    json_prefix = os.environ.get("S3_JSON_PREFIX", "")
 
-    today   = datetime.utcnow().strftime("%Y-%m-%d")
-    year    = today[:4]
-    csv_key = csv_prefix + year + "_views_log.csv"
+    today    = datetime.utcnow().strftime("%Y-%m-%d")
+    year     = today[:4]
+    json_key = json_prefix + year + "_views_data.json"
 
     messages = []
     log = messages.append
@@ -254,15 +248,15 @@ def lambda_handler(event, context):
     log("  YouTube View Tracker (Lambda)  |  " + today)
     log("=" * 60)
     log("  URLs : s3://" + bucket + "/" + urls_key)
-    log("  CSV  : s3://" + bucket + "/" + csv_key + "\n")
+    log("  JSON : s3://" + bucket + "/" + json_key + "\n")
 
-    urls                   = read_urls_s3(bucket, urls_key)
-    headers, rows_by_id    = load_csv_s3(bucket, csv_key)
-    headers, rows_by_id, n = run(urls, headers, rows_by_id, today, log)
+    urls    = read_urls_s3(bucket, urls_key)
+    data    = load_json_s3(bucket, json_key)
+    data, n = run(urls, data, today, log)
 
     if n:
-        save_csv_s3(bucket, csv_key, headers, rows_by_id)
-        log("  + " + str(n) + " video" + ("s" if n != 1 else "") + " updated in s3://" + bucket + "/" + csv_key)
+        save_json_s3(bucket, json_key, data)
+        log("  + " + str(n) + " video" + ("s" if n != 1 else "") + " updated in s3://" + bucket + "/" + json_key)
 
     output = "\n".join(messages)
     print(output)
@@ -272,27 +266,27 @@ def lambda_handler(event, context):
 # -- Local CLI entry point -----------------------------------------------------
 
 def main():
-    url_file = sys.argv[1] if len(sys.argv) > 1 else "urls.txt"
-    today    = datetime.now().strftime("%Y-%m-%d")
-    year     = today[:4]
-    csv_file = sys.argv[2] if len(sys.argv) > 2 else year + "_views_log.csv"
+    url_file  = sys.argv[1] if len(sys.argv) > 1 else "urls.txt"
+    today     = datetime.now().strftime("%Y-%m-%d")
+    year      = today[:4]
+    json_file = sys.argv[2] if len(sys.argv) > 2 else year + "_views_data.json"
 
-    urls                   = read_urls_local(url_file)
-    headers, rows_by_id    = load_csv_local(csv_file)
+    urls = read_urls_local(url_file)
+    data = load_json_local(json_file)
 
     print("=" * 60)
     print("  YouTube View Tracker  |  " + today)
     print("=" * 60)
     print("  URLs file : " + url_file + "  (" + str(len(urls)) + " URL" + ("s" if len(urls) != 1 else "") + ")")
-    print("  Output    : " + csv_file)
+    print("  Output    : " + json_file)
     print("=" * 60 + "\n")
 
-    headers, rows_by_id, n = run(urls, headers, rows_by_id, today, print)
+    data, n = run(urls, data, today, print)
 
     if n:
-        save_csv_local(csv_file, headers, rows_by_id)
+        save_json_local(json_file, data)
         print("=" * 60)
-        print("  + " + str(n) + " video" + ("s" if n != 1 else "") + " updated in '" + csv_file + "'")
+        print("  + " + str(n) + " video" + ("s" if n != 1 else "") + " updated in '" + json_file + "'")
         print("=" * 60)
     else:
         print("No data to save.")
